@@ -1,0 +1,56 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - desafio-backend-net
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_DATABASE=MotorcycleRentDB
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - desafio-backend-net
+
+  api:
+   build:
+     context: .
+     dockerfile: API_Desafio_Backend/Dockerfile
+   container_name: api
+   ports:
+     - "7020:7020"
+   environment:
+     - ASPNETCORE_ENVIRONMENT=Production
+     - RabbitMq__Host=rabbitmq
+     - RabbitMq__Username=guest
+     - RabbitMq__Password=guest
+     - RabbitMq__VirtualHost=/
+     - DOTNET_RUNNING_IN_CONTAINER=true
+     - MongoDbSettings__ConnectionString=mongodb://root:password@mongodb:27017/MotorcycleRentDB?authSource=admin
+     - MongoDbSettings__DatabaseName=MotorcycleRentDB
+     - ASPNETCORE_URLS=http://0.0.0.0:7020
+   depends_on:
+     - rabbitmq
+     - mongodb
+   networks:
+     - desafio-backend-net
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  desafio-backend-net:
+    name: desafio-backend-net
