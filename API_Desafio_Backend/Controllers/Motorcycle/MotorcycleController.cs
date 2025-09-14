@@ -39,7 +39,7 @@ namespace API_Desafio_Backend.Controllers.Motorcycle
                 {
                     return BadRequest(new MessageResponse() { Message = "Identificador inválido ou vazio." });
                 }
-                else if (_dbContext.Motorcycles.Any(m => m.Placa == motorcycle.Identificador))
+                else if (_dbContext.Motorcycles.Any(m => m.Identificador == motorcycle.Identificador))
                 {
                     return BadRequest(new MessageResponse() { Message = "Identificador já foi cadastrado para outra moto." });
                 }
@@ -62,9 +62,7 @@ namespace API_Desafio_Backend.Controllers.Motorcycle
                     Modelo = motorcycle.Modelo,
                     Placa = motorcycle.Placa
                 };
-                var existePlaca = _dbContext.Motorcycles.Any(m => m.Placa == motorcycleEntity.Placa);
-
-                if (existePlaca)
+                if (_dbContext.Motorcycles.Any(m => m.Placa == motorcycleEntity.Placa))
                 {
                     return BadRequest(new MessageResponse() { Message = $"Já existe uma moto cadastrada com a placa {motorcycle.Placa}" });
                 }
