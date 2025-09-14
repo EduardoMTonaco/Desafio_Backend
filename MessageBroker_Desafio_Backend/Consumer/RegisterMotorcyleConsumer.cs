@@ -5,11 +5,14 @@ namespace MessageBroker_Desafio_Backend.Consumer
 {
     public class RegisterMotorcyleConsumer : IConsumer<RegisterMotorcyleEvent>
     {
-        public Task Consume(ConsumeContext<RegisterMotorcyleEvent> context)
+        public async Task Consume(ConsumeContext<RegisterMotorcyleEvent> context)
         {
-            var evento = context.Message;
-            Console.WriteLine($"Moto cadastrada: {evento.Placa}, id: {evento.Identificador}");
-            return Task.CompletedTask;
+            RegisterMotorcyleEvent motorcycleEvent = context.Message;
+            if(motorcycleEvent.Ano == 2024)
+            {
+                Console.WriteLine($"Motorcycle={motorcycleEvent.Identificador}, Year={motorcycleEvent.Ano}, Model={motorcycleEvent.Modelo}, Plate={motorcycleEvent.Placa}");
+            }
+           
         }
     }
 }

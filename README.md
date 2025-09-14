@@ -106,7 +106,7 @@ Isso irá subir:
 💡 **Observação para Windows**:  
 Abra o **CMD**, navegue até a pasta onde está o arquivo `docker-compose.yml` e rode:  
 
-```bash
+``` 
 docker-compose up
 ```
 

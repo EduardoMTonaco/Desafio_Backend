@@ -1,51 +1,78 @@
-﻿using Library_Desafio_Backend.MessageBroker.Event;
-using MassTransit;
+﻿using MassTransit;
 using MessageBroker_Desafio_Backend.Consumer;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-var configuration = new ConfigurationBuilder()
-           .SetBasePath(Directory.GetCurrentDirectory()) // Pega o diretório da aplicação
-           .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-           .Build();
+using RabbitMQ.Client;
+using RabbitMQ.Client.Exceptions;
+using System.Text;
 
-var rabbitMqConfig = configuration.GetSection("RabbitMq");
-string host = rabbitMqConfig["Host"];
-string username = rabbitMqConfig["Username"];
-string password = rabbitMqConfig["Password"];
-string vhost = rabbitMqConfig["VirtualHost"];
-
-// Criar o bus
-var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
+string host = Environment.GetEnvironmentVariable("RabbitMq__Host");
+string username = Environment.GetEnvironmentVariable("RabbitMq__Username");
+string password = Environment.GetEnvironmentVariable("RabbitMq__Password");
+string vhost = Environment.GetEnvironmentVariable("RabbitMq__VirtualHost");
+string errorMessage = "";
+StringBuilder sb = new StringBuilder(errorMessage);
+try
 {
-    if (string.IsNullOrEmpty(vhost) || vhost == "/")
+
+
+    var factory = new ConnectionFactory()
     {
-        // Se não usar virtual host ou for default "/", não precisa passar
-        cfg.Host(host, h =>
+        HostName = host,
+        UserName = username,
+        Password = password,
+        VirtualHost = vhost
+    };
+
+    int retries = 0;
+    int maxRetries = 10;
+    TimeSpan delay = TimeSpan.FromSeconds(5);
+
+    while (retries < maxRetries)
+    {
+        try
         {
-            h.Username(username);
-            h.Password(password);
-        });
-    }
-    else
-    {
-        // Usar virtual host customizado
-        cfg.Host(host, vhost, h =>
+
+            var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
+            {
+                cfg.Host(host, "/", h =>
+                {
+                    h.Username(username);
+                    h.Password(password);
+                });
+
+                cfg.ReceiveEndpoint("register-motorcyle_queue", e =>
+                {
+                    e.PrefetchCount = 1;
+                    e.Durable = true;
+                    e.AutoDelete = false;
+                    e.Consumer<RegisterMotorcyleConsumer>();
+                });
+            });
+
+            await busControl.StartAsync();
+
+            await Task.Delay(Timeout.Infinite);
+
+
+        }
+        catch (BrokerUnreachableException)
         {
-            h.Username(username);
-            h.Password(password);
-        });
+            throw;
+
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
-    // Definir a fila que vai receber as mensagens e associar o consumidor
-    cfg.ReceiveEndpoint("produto-cadastrado-queue", e =>
+    if (retries >= maxRetries)
     {
-        e.Consumer<RegisterMotorcyleConsumer>();
-    });
-});
+        throw new Exception("Unable to connect to RabbitMQ after multiple attempts.");
+    }
+}
+catch (Exception)
+{
 
-await busControl.StartAsync();
-
-Console.WriteLine("Aguardando eventos. Pressione qualquer tecla para sair.");
-Console.ReadKey();
-
-await busControl.StopAsync();
+    throw;
+}
+throw new Exception(sb.ToString());

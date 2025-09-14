@@ -4,11 +4,8 @@ using Library_Desafio_Backend.DataBase.MongoDB.DataBase;
 using Library_Desafio_Backend.DataBase.MongoDB.DataBase.Class;
 using Library_Desafio_Backend.MessageBroker.Event;
 using MassTransit;
+using MassTransit.Transports;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.Annotations;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace API_Desafio_Backend.Controllers.Motorcycle
@@ -20,7 +17,7 @@ namespace API_Desafio_Backend.Controllers.Motorcycle
     {
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly MotorcycleRentDbContext _dbContext;
-        public MotorcycleController(IPublishEndpoint publishEndpoint, MotorcycleRentDbContext dbContext)
+        public MotorcycleController( IPublishEndpoint publishEndpoint, MotorcycleRentDbContext dbContext)
         {
             _publishEndpoint = publishEndpoint;
             _dbContext = dbContext;
@@ -34,7 +31,7 @@ namespace API_Desafio_Backend.Controllers.Motorcycle
         [HttpPost(Name = "Motos")]
         [ProducesResponseType(201)]
         [ProducesResponseType(typeof(MessageResponse), 400)]
-        public IActionResult PostRegisterMotorcycle([Required] MotorcycleInsertParameter motorcycle)
+        public async Task<IActionResult> PostRegisterMotorcycleAsync([Required] MotorcycleInsertParameter motorcycle)
         {
             try
             {
@@ -82,16 +79,15 @@ namespace API_Desafio_Backend.Controllers.Motorcycle
                     _dbContext.MotorcycleHistory.Add(motorcycleHistoryClass);
                     _dbContext.SaveChanges();
                 }
-
 #if !DEBUG
-                RegisterMotorcyleEvent evento = new RegisterMotorcyleEvent
+                RegisterMotorcyleEvent eventRabbit = new RegisterMotorcyleEvent
                 {
                     Identificador = motorcycle.Identificador,
                     Ano = motorcycle.Ano,
                     Modelo = motorcycle.Modelo,
                     Placa = motorcycle.Placa
                 };
-                _publishEndpoint.Publish(evento);
+                await _publishEndpoint.Publish<RegisterMotorcyleEvent>(eventRabbit, context => context.SetRoutingKey("register-motorcyle_queue"));
 #endif
                 return StatusCode(201, "Created");
             }
@@ -167,7 +163,7 @@ namespace API_Desafio_Backend.Controllers.Motorcycle
                 {
                     return BadRequest(new MessageResponse() { Message = $"A moto de Identificador: {motorcycle.Identificador} possui locação." });
                 }
-                    motorcycle.Placa = plate.Placa;
+                motorcycle.Placa = plate.Placa;
                 _dbContext.SaveChanges();
                 return Ok("Placa modificada com sucesso.");
             }

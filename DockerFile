@@ -1,20 +1,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-
 COPY Desafio_Backend.sln ./
-
+# solucao
 COPY API_Desafio_Backend/ API_Desafio_Backend/
 COPY Library_Desafio_Backend/ Library_Desafio_Backend/
-
+# solucao
+COPY MessageBroker_Desafio_Backend/ MessageBroker_Desafio_Backend/
+# solucao
 RUN dotnet restore Desafio_Backend.sln
-
 RUN dotnet publish API_Desafio_Backend/API_Desafio_Backend.csproj -c Release -o /app/publish/api
-
+# solucao
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-
-COPY --from=build /app/publish/api ./api
-
-COPY --from=build /app/publish/web ./web
-
-ENTRYPOINT ["dotnet", "api/Library_Desafio_Backend.dll"]
+# solucao
+COPY --from=build /app/publish/api .
+ENTRYPOINT ["dotnet", "API_Desafio_Backend.dll"]

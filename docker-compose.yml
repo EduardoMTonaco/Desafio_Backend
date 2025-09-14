@@ -10,6 +10,11 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+     test: ["CMD", "rabbitmqctl", "status"]
+     interval: 10s
+     timeout: 5s
+     retries: 5
     networks:
       - desafio-backend-net
 
@@ -46,6 +51,26 @@ services:
      - rabbitmq
      - mongodb
    networks:
+     - desafio-backend-net
+
+  message-broker:   
+    build:
+     context: .
+     dockerfile: MessageBroker_Desafio_Backend/Dockerfile        
+    container_name: message-broker
+    depends_on:
+     rabbitmq:
+      condition: service_healthy
+    environment:
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ASPNETCORE_ENVIRONMENT=Production
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Username=guest
+      - RabbitMq__Password=guest
+      - RabbitMq__VirtualHost=/
+    ports:
+      - "7021:7021"
+    networks:
      - desafio-backend-net
 
 volumes:
