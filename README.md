@@ -1,6 +1,6 @@
 # 📦 API de Locação de Motos
 
-![.NET](https://img.shields.io/badge/.NET-6.0-blueviolet)
+![.NET](https://img.shields.io/badge/.NET-8.0-blueviolet)
 ![MongoDB](https://img.shields.io/badge/MongoDB-%2347A248.svg?logo=mongodb&logoColor=white)
 ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?logo=rabbitmq&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-%230db7ed.svg?logo=docker&logoColor=white)
