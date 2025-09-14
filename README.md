@@ -173,7 +173,10 @@ Este projeto utiliza o **RabbitMQ** para mensageria, permitindo a publicação e
    docker ps -a
    ```
 2. Localize o container do **MessageBroker** (nome: `message-broker-desafio-backend`).  
-3. Acesse o console para acompanhar os logs de eventos em tempo real com o comando : docker logs -f <**CONTAINER ID **>
+3. Acesse o console para acompanhar os logs de eventos em tempo real com o comando : 
+   ```
+   docker logs -f <**CONTAINER ID **>
+   ```
 
 ## Mensageria
 ---
