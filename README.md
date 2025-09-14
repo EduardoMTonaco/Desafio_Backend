@@ -151,10 +151,31 @@ docker-compose up
 - **GET** → Listar planos (por ID ou período)
 
 ### 📩 Mensageria (RabbitMQ)
-Eventos relacionados a aluguéis são publicados/consumidos pelo **MessageBroker_Desafio_Backend**.  
-Localização dos eventos:  
-`Library_Desafio_Backend/MessageBroker/Event`
 
+Este projeto utiliza o **RabbitMQ** para mensageria, permitindo a publicação e o consumo de eventos relacionados aos processos de **locação de motos**.
+
+- Os eventos são manipulados pelo serviço **MessageBroker_Desafio_Backend**.  
+- Localização dos eventos no código:  
+  ```
+  MessageBroker_Desafio_Backend/Event
+  ```
+
+#### 🔄 Fluxo de eventos
+- Ao **registrar uma moto** via `POST`, uma mensagem será enviada para a fila:  
+  ```
+  register-motorcycle_queue
+  ```
+- Caso o **ano da moto seja 2024**, os dados cadastrados também serão exibidos no **console** do serviço `MessageBroker_Desafio_Backend`.
+
+#### 🐳 Acessando o console via Docker
+1. Liste os containers ativos:  
+   ```bash
+   docker ps -a
+   ```
+2. Localize o container do **MessageBroker** (nome: `message-broker-desafio-backend`).  
+3. Acesse o console para acompanhar os logs de eventos em tempo real com o comando : docker logs -f <**CONTAINER ID **>
+
+## Mensageria
 ---
 
 ## 📂 Estrutura de Diretórios
@@ -181,7 +202,9 @@ Localização dos eventos:
 │   └── Utility/Mask.cs
 │
 ├── MessageBroker_Desafio_Backend
-│   └── # Lógica de mensageria
+│   ├── Consumer/RegisterMotorcyleConsumer.cs
+│   └── Event/RegisterMotorcyleEvent.cs
+
 ```
 
 ---
